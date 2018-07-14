@@ -10,7 +10,7 @@ body {
     </style>
   </head>
   <body>
-    <audio src="rain.mp3" loop autoplay></audio>
+    <audio src="rain.mp3" loop></audio>
 
     <script src="./lib/pixi.min.js"></script>
     <script src="./lib/pixi-particles.min.js"></script>
@@ -19,23 +19,28 @@ body {
 var componentToHex = function(c) {
   var hex = c.toString(16);
   return hex.length == 1 ? '0' + hex : hex;
-}
+};
 
 var rgbToHex = function(r, g, b) {
   return '0x' + componentToHex(r) + componentToHex(g) + componentToHex(b);
-}
+};
 
 var getRandomBackgroundColor = function(a) {
   if (!a) {
-    var a = Math.floor(Math.random() * 5);
+    a = Math.floor(Math.random() * 5);
   }
 
   return rgbToHex(a, a, a + 15);
 };
 
-var generateLighting = function(g) {
-  var x = Math.random() * window.innerWidth;
-  var y = Math.random() * window.innerHeight;
+var generateLighting = function(g, x, y) {
+  if (!x) {
+    x = Math.random() * window.innerWidth;    
+  }
+
+  if (!y) {
+    y = Math.random() * window.innerHeight;    
+  }
 
   g.lineStyle(4, 0xffffff, 1);
   g.moveTo(x, y);
@@ -51,8 +56,18 @@ var generateLighting = function(g) {
   }
 
   g.endFill();
-}
+};
 
+var startLighting = function(x, y) {
+  generateLighting(graphics, x, y);
+  app.renderer.backgroundColor = getRandomBackgroundColor(100);
+
+  setTimeout(function() {
+    graphics.clear();
+  }, 100);
+};
+
+// init
 const app = new PIXI.Application({
   width: window.innerWidth,
   height: window.innerHeight,
@@ -70,57 +85,57 @@ var rainEmitter = new PIXI.particles.Emitter(
   rainEmitterContainer,
   [PIXI.Texture.fromImage(rainTexture)],
   {
-    "alpha": {
-      "start": 0.25,
-      "end": 0.25
+    'alpha': {
+      'start': 0.25,
+      'end': 0.25
     },
-    "scale": {
-      "start": 0.25,
-      "end": 0.25,
-      "minimumScaleMultiplier": 1
+    'scale': {
+      'start': 0.25,
+      'end': 0.25,
+      'minimumScaleMultiplier': 1
     },
-    "color": {
-      "start": "#ffffff",
-      "end": "#ffffff"
+    'color': {
+      'start': '#ffffff',
+      'end': '#ffffff'
     },
-    "speed": {
-      "start": 3000,
-      "end": 3000,
-      "minimumSpeedMultiplier": 1
+    'speed': {
+      'start': 3000,
+      'end': 3000,
+      'minimumSpeedMultiplier': 1
     },
-    "acceleration": {
-      "x": 0,
-      "y": 1
+    'acceleration': {
+      'x': 0,
+      'y': 1
     },
-    "maxSpeed": 0,
-    "startRotation": {
-      "min": 90,
-      "max": 90
+    'maxSpeed': 0,
+    'startRotation': {
+      'min': 90,
+      'max': 90
     },
-    "noRotation": false,
-    "rotationSpeed": {
-      "min": 0,
-      "max": 0
+    'noRotation': false,
+    'rotationSpeed': {
+      'min': 0,
+      'max': 0
     },
-    "lifetime": {
-      "min": 0.81,
-      "max": 0.81
+    'lifetime': {
+      'min': 0.81,
+      'max': 0.81
     },
-    "blendMode": "normal",
-    "frequency": 0.002,
-    "emitterLifetime": -1,
-    "maxParticles": 1000,
-    "pos": {
-      "x": 0,
-      "y": 0
+    'blendMode': 'normal',
+    'frequency': 0.002,
+    'emitterLifetime': -1,
+    'maxParticles': 1000,
+    'pos': {
+      'x': 0,
+      'y': 0
     },
-    "addAtBack": true,
-    "spawnType": "rect",
-    "spawnRect": {
-      "x": 0,
-      "y": -460,
-      "w": app.view.width,
-      "h": app.view.height
+    'addAtBack': true,
+    'spawnType': 'rect',
+    'spawnRect': {
+      'x': 0,
+      'y': -460,
+      'w': app.view.width,
+      'h': app.view.height
     }
   }
 );
@@ -135,25 +150,37 @@ var graphics = new PIXI.Graphics();
 app.stage.addChild(graphics);
 
 // tick
+var canChangeBackground = true;
 app.ticker.add(() => {
   rainEmitter.update((Date.now() - elapsed) * 0.001);
   elapsed = Date.now();
 
-  app.renderer.backgroundColor = getRandomBackgroundColor();
+  if (canChangeBackground) {
+    app.renderer.backgroundColor = getRandomBackgroundColor();
+  }
 
   if (Math.random() < 0.01) {
-    generateLighting(graphics);
-    app.renderer.backgroundColor = getRandomBackgroundColor(100);
-
-    setTimeout(function() {
-      graphics.clear();
-    }, 100);
+    startLighting();
   }
 });
 
-// app.ticker.add(() => {
-// 
-// });
+// ui
+window.addEventListener('mousemove', function() {
+  var audio = document.querySelector('audio');
+
+  if (audio.currentTime <= 0) {
+    audio.play();
+  }
+});
+
+window.addEventListener('click', function(e) {
+  canChangeBackground = false;
+  startLighting(e.clientX, e.clientY);
+
+  setTimeout(function() {
+    canChangeBackground = true;
+  }, 50);
+});
     </script>
   </body>
 </html>
