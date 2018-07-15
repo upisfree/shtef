@@ -13,6 +13,7 @@ body {
     <audio src="rain.mp3" loop></audio>
 
     <script src="./lib/pixi.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pixi-filters@2.6.1/dist/pixi-filters.js"></script>
     <script src="./lib/pixi-particles.min.js"></script>
     <script>
 // utils
@@ -75,6 +76,12 @@ const app = new PIXI.Application({
 });
 
 document.body.appendChild(app.view);
+
+app.stage.filters = [new PIXI.filters.AdvancedBloomFilter({
+  bloomScale: 2.0,
+  // brightness: 2.0,
+  // blur: 16,
+})];
 
 // rain
 var rainEmitterContainer = new PIXI.Container();
@@ -165,15 +172,13 @@ app.ticker.add(() => {
 });
 
 // ui
-window.addEventListener('mousemove', function() {
+window.addEventListener('click', function(e) {
   var audio = document.querySelector('audio');
 
   if (audio.currentTime <= 0) {
     audio.play();
   }
-});
 
-window.addEventListener('click', function(e) {
   canChangeBackground = false;
   startLighting(e.clientX, e.clientY);
 
